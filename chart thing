@@ -1,205 +1,145 @@
+
 //@version=5
 indicator(title='Correlation Matrix Heatmap', shorttitle="Index")
 
-f_color_hsl(_hue, _saturation, _lightness, _transparency) =>  //{
-//  @function: returns HSL color.
-//  @reference: https://stackoverflow.com/questions/36721830/convert-hsl-to-rgb-and-hex
-    float _l1 = _lightness / 100.
-    float _a = _saturation * math.min(_l1, 1. - _l1) / 100.
-    float _rk = (0 + _hue / 30) % 12
-    float _r = 255 * (_l1 - _a * math.max(math.min(_rk - 3, 9 - _rk, 1), -1))
-    float _gk = (8 + _hue / 30) % 12
-    float _g = 255 * (_l1 - _a * math.max(math.min(_gk - 3, 9 - _gk, 1), -1))
-    float _bk = (4 + _hue / 30) % 12
-    float _b = 255 * (_l1 - _a * math.max(math.min(_bk - 3, 9 - _bk, 1), -1))
-    color.rgb(_r, _g, _b, _transparency)
-//}
-
-string ticket00 = input.symbol(defval='EURUSD', title='', group='Tickets:', inline='T0')
-string ticket01 = input.symbol(defval='EURGBP', title='', group='Tickets:', inline='T0')
-string ticket02 = input.symbol(defval='EURAUD', title='', group='Tickets:', inline='T0')
-string ticket03 = input.symbol(defval='EURJPY', title='', group='Tickets:', inline='T1')
-string ticket04 = input.symbol(defval='EURCAD', title='', group='Tickets:', inline='T1')
-string ticket06 = input.symbol(defval='EURNZD', title='', group='Tickets:', inline='T1')
-string ticket07 = input.symbol(defval='DXY', title='', group='Tickets:', inline='T2')
-string ticket08 = input.symbol(defval='USDGBP', title='', group='Tickets:', inline='T1')
-string ticket09 = input.symbol(defval='USDAUD', title='', group='Tickets:', inline='T1')
-string ticket10 = input.symbol(defval='USDJPY', title='', group='Tickets:', inline='T2')
-string ticket11 = input.symbol(defval='USDCAD', title='', group='Tickets:', inline='T2')
-string ticket12 = input.symbol(defval='USDEUR', title='', group='Tickets:', inline='T2')
-string ticket14 = input.symbol(defval='USDNZD', title='', group='Tickets:', inline='T2')
-string ticket15 = input.symbol(defval='AUDUSD', title='', group='Tickets:', inline='T2')
-string ticket16 = input.symbol(defval='AUDGBP', title='', group='Tickets:', inline='T2')
-string ticket17 = input.symbol(defval='AUDJPY', title='', group='Tickets:', inline='T2')
-string ticket18 = input.symbol(defval='AUDCAD', title='', group='Tickets:', inline='T2')
-string ticket20 = input.symbol(defval='AUDNZD', title='', group='Tickets:', inline='T2')
-string ticket21 = input.symbol(defval='AUDEUR', title='', group='Tickets:', inline='T2')
-string ticket22 = input.symbol(defval='GBPJPY', title='', group='Tickets:', inline='T2')
-string ticket23 = input.symbol(defval='GBPUSD', title='', group='Tickets:', inline='T2')
-string ticket24 = input.symbol(defval='GBPCAD', title='', group='Tickets:', inline='T2')
-string ticket25 = input.symbol(defval='GBPAUD', title='', group='Tickets:', inline='T2')
-string ticket26 = input.symbol(defval='GBPNZD', title='', group='Tickets:', inline='T2')
-string ticket28 = input.symbol(defval='GBPEUR', title='', group='Tickets:', inline='T2')
-string ticket36 = input.symbol(defval='JPYUSD', title='', group='Tickets:', inline='T2')
-string ticket37 = input.symbol(defval='JPYGBP', title='', group='Tickets:', inline='T2')
-string ticket38 = input.symbol(defval='JPYCAD', title='', group='Tickets:', inline='T2')
-string ticket39 = input.symbol(defval='JPYEUR', title='', group='Tickets:', inline='T2')
-string ticket40 = input.symbol(defval='JPYAUD', title='', group='Tickets:', inline='T2')
-string ticket42 = input.symbol(defval='JPYNZD', title='', group='Tickets:', inline='T0')
-string ticket43 = input.symbol(defval='CADUSD', title='', group='Tickets:', inline='T2')
-string ticket44 = input.symbol(defval='CADGBP', title='', group='Tickets:', inline='T2')
-string ticket45 = input.symbol(defval='CADEUR', title='', group='Tickets:', inline='T2')
-string ticket46 = input.symbol(defval='CADAUD', title='', group='Tickets:', inline='T2')
-string ticket47 = input.symbol(defval='CADNZD', title='', group='Tickets:', inline='T2')
-string ticket48 = input.symbol(defval='CADJPY', title='', group='Tickets:', inline='T2')
-
-int length = input.int(title='Length:', defval=10, group='Series Configuration')
-int smooth = input.int(title='Smooth:', defval=5, group='Series Configuration', inline='Source')
-float src = ta.sma(input.source(title='Source:', defval=close, group='Series Configuration', inline='Source'), smooth)
-int i_variance_window = input.int(title='Variance Window:', defval=10, group='Series Configuration', tooltip='High variance means that there was a recent change in correlation')
 
 string i_text_size = input.string(title='Text Size:', defval=size.small, options=[size.tiny, size.small, size.normal, size.large, size.huge, size.auto], group='Style:')
 string i_position = input.string(title='Table Position:', defval=position.top_right, options=[position.top_left, position.top_center, position.top_right, position.middle_left, position.middle_center, position.middle_right, position.bottom_left, position.bottom_center, position.bottom_right], group='Style:', tooltip='Table position.')
+daysback = input.int(250, "days back for low/high")
 
-int i_color_title_hue = input.int(title='Title:', group='Color Profile', defval=200, minval=0, maxval=360)
-int i_color_pos_hue = input.int(title='Positive:', group='Color Profile', defval=100, minval=0, maxval=360)
-int i_color_neg_hue = input.int(title='Negative:', group='Color Profile', defval=0, minval=0, maxval=360)
-int i_color_saturation = input.int(title='Saturation:', group='Color Profile', defval=30, minval=10, maxval=90)
-int i_color_lightness = input.int(title='Lightness:', group='Color Profile', defval=70, minval=10, maxval=90)
-int i_color_transparency = input.int(title='Transparency:', group='Color Profile', defval=0, minval=0, maxval=100)
-
-color c_text_color = f_color_hsl(0, 0, 100 - i_color_lightness, i_color_transparency)
-color c_bg_title = f_color_hsl(i_color_title_hue, i_color_saturation, i_color_lightness, i_color_transparency)  //#cabfac
-c_gradient(_value) =>  //{
-    _col = color.silver
-    if _value > 0
-        _col := f_color_hsl(i_color_pos_hue, _value, i_color_lightness, i_color_transparency)
-        _col
-    else if _value < 0
-        _col := f_color_hsl(i_color_neg_hue, math.abs(_value), i_color_lightness, i_color_transparency)
-        _col
-    else
-        _col := color.gray
-        _col
-    _col
-//}
-
-z = bar_index
-a = request.security(ticket00, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-b = request.security(ticket01, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-c = request.security(ticket02, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-d = request.security(ticket03, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-e = request.security(ticket04, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-g = request.security(ticket06, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-h = request.security(ticket07, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-i = request.security(ticket08, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-j = request.security(ticket09, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-k = request.security(ticket10, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-l = request.security(ticket11, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-m = request.security(ticket12, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-o = request.security(ticket14, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-p = request.security(ticket15, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-q = request.security(ticket16, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-r = request.security(ticket17, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-s = request.security(ticket18, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-u = request.security(ticket20, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-v = request.security(ticket21, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-w = request.security(ticket22, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-x = request.security(ticket23, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-y = request.security(ticket24, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-aa = request.security(ticket25, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-bb = request.security(ticket26, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-dd = request.security(ticket28, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-ll = request.security(ticket36, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-mm = request.security(ticket37, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-nn = request.security(ticket38, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-oo = request.security(ticket39, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-pp = request.security(ticket40, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-rr = request.security(ticket42, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-ss = request.security(ticket43, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-tt = request.security(ticket44, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-uu = request.security(ticket45, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-vv = request.security(ticket46, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-ww = request.security(ticket47, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
-xx = request.security(ticket48, 'D', src, barmerge.gaps_off, barmerge.lookahead_on)
+string ticket01 = input.symbol(defval='EURUSD', title='', group='Tickets:')
+string ticket02 = input.symbol(defval='EURJPY', title='', group='Tickets:')
+string ticket03 = input.symbol(defval='EURGBP', title='', group='Tickets:')
+string ticket04 = input.symbol(defval='EURAUD', title='', group='Tickets:')
+string ticket05 = input.symbol(defval='EURCHF', title='', group='Tickets:')
+string ticket06 = input.symbol(defval='EURNZD', title='', group='Tickets:')
+string ticket07 = input.symbol(defval='EURCAD', title='', group='Tickets:')
+string ticket08 = input.symbol(defval='GBPAUD', title='', group='Tickets:')
+string ticket09 = input.symbol(defval='GBPCAD', title='', group='Tickets:')
+string ticket10 = input.symbol(defval='GBPJPY', title='', group='Tickets:')
+string ticket11 = input.symbol(defval='GBPUSD', title='', group='Tickets:')
+string ticket12 = input.symbol(defval='GBPCHF', title='', group='Tickets:')
+string ticket13 = input.symbol(defval='GBPNZD', title='', group='Tickets:')
+string ticket14 = input.symbol(defval='USDJPY', title='', group='Tickets:')
+string ticket15 = input.symbol(defval='USDCAD', title='', group='Tickets:')
+string ticket16 = input.symbol(defval='USDCHF', title='', group='Tickets:')
+string ticket17 = input.symbol(defval='AUDUSD', title='', group='Tickets:')
+string ticket18 = input.symbol(defval='AUDCAD', title='', group='Tickets:')
+string ticket19 = input.symbol(defval='AUDNZD', title='', group='Tickets:')
+string ticket20 = input.symbol(defval='AUDJPY', title='', group='Tickets:')
+string ticket21 = input.symbol(defval='AUDCHF', title='', group='Tickets:')
+string ticket22 = input.symbol(defval='NZDUSD', title='', group='Tickets:')
+string ticket23 = input.symbol(defval='NZDCAD', title='', group='Tickets:')
+string ticket24 = input.symbol(defval='NZDCHF', title='', group='Tickets:')
+string ticket25 = input.symbol(defval='NZDJPY', title='', group='Tickets:')
+string ticket26 = input.symbol(defval='CADJPY', title='', group='Tickets:')
+string ticket27 = input.symbol(defval='CADCHF', title='', group='Tickets:')
+string ticket28 = input.symbol(defval='CHFJPY', title='', group='Tickets:')
 
 
+[A1, A2, A3] = request.security(ticket01, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[B1, B2, B3] = request.security(ticket02, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[C1, C2, C3] = request.security(ticket03, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[D1, D2, D3] = request.security(ticket04, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[E1, E2, E3] = request.security(ticket05, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[F1, F2, F3] = request.security(ticket06, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[G1, G2, G3] = request.security(ticket07, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[H1, H2, H3] = request.security(ticket08, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[I1, I2, I3] = request.security(ticket09, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[J1, J2, J3] = request.security(ticket10, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[K1, K2, K3] = request.security(ticket11, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[L1, L2, L3] = request.security(ticket12, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[M1, M2, M3] = request.security(ticket13, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[N1, N2, N3] = request.security(ticket14, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[O1, O2, O3] = request.security(ticket15, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[P1, P2, P3] = request.security(ticket16, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[Q1, Q2, Q3] = request.security(ticket17, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[R1, R2, R3] = request.security(ticket18, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[S1, S2, S3] = request.security(ticket19, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[T1, T2, T3] = request.security(ticket20, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[U1, U2, U3] = request.security(ticket21, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[V1, V2, V3] = request.security(ticket22, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[W1, W2, W3] = request.security(ticket23, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[X1, X2, X3] = request.security(ticket24, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[Y1, Y2, Y3] = request.security(ticket25, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[Z1, Z2, Z3] = request.security(ticket26, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[AA1, AA2, AA3] = request.security(ticket27, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
+[BB1, BB2, BB3] = request.security(ticket28, "D", [high, close, low], barmerge.gaps_off, barmerge.lookahead_on)
 
+AAA = A2*B2*C2*D2*E2*F2*G2*10 //eur
+BBB = H2*I2/C2*J2*K2*L2*M2  // gbp
+CCC = N2*O2/A2/K2*P2/Q2/V2*10  // usd
+DDD = Q2/D2/H2*R2*S2*T2*U2*100  // aud
+EEE = V2/S2/M2/F2*W2*X2*Y2*1000  // nzd
+FFF = Z2/R2/I2/O2/W2/G2*AA2*100  // cad
+GGG = 1/T2/J2/Z2/BB2/N2/Y2/B2*100000000000000000 // jpy
+HHH = BB2/E2/L2/P2/U2/X2/AA2*10 // chf
 
-float a1 = ta.correlation(b, a, length) //eg
-float a2 = ta.correlation(c, a, length) //ea
-float a3 = ta.correlation(d, a, length) //ej
-float a4 = ta.correlation(e, a, length) //eC
-float a5 = ta.correlation(g, a, length) //en
+AAAL = A3[daysback]*B3[daysback]*C3[daysback]*D3[daysback]*E3[daysback]*F3[daysback]*G3[daysback]*10
+BBBL = H3[daysback]*I3[daysback]/C3[daysback]*J3[daysback]*K3[daysback]*L3[daysback]*M3[daysback]
+CCCL = N3[daysback]*O3[daysback]/A3[daysback]/K3[daysback]*P3[daysback]/Q3[daysback]/V3[daysback]*10
+DDDL = Q3[daysback]/D3[daysback]/H3[daysback]*R3[daysback]*S3[daysback]*T3[daysback]*U3[daysback]*100
+EEEL = V3[daysback]/S3[daysback]/M3[daysback]/F3[daysback]*W3[daysback]*X3[daysback]*Y3[daysback]*1000
+FFFL = Z3[daysback]/R3[daysback]/I3[daysback]/O3[daysback]/W3[daysback]/G3[daysback]*AA3[daysback]*100
+GGGL = 1/T3[daysback]/J3[daysback]/Z3[daysback]/BB3[daysback]/N3[daysback]/Y3[daysback]/B3[daysback]*1000000000000000000
+HHHL = BB3[daysback]/E3[daysback]/L3[daysback]/P3[daysback]/U3[daysback]/X3[daysback]/AA3[daysback]*10
 
-float b1 = ta.correlation(i, h, length) //ug
-float b2 = ta.correlation(j, h, length) //ua
-float b3 = ta.correlation(k, h, length) //uj
-float b4 = ta.correlation(l, h, length) //uC
-float b5 = ta.correlation(m, h, length) //ue
-float b6 = ta.correlation(o, h, length) //un
+AAAH = A1[daysback]*B1[daysback]*C1[daysback]*D1[daysback]*E1[daysback]*F1[daysback]*G1[daysback]*10
+BBBH = H1[daysback]*I1[daysback]/C1[daysback]*J1[daysback]*K1[daysback]*L1[daysback]*M1[daysback]
+CCCH = N1[daysback]*O1[daysback]/A1[daysback]/K1[daysback]*P1[daysback]/Q1[daysback]/V1[daysback]*10
+DDDH = Q1[daysback]/D1[daysback]/H1[daysback]*R1[daysback]*S1[daysback]*T1[daysback]*U1[daysback]*100
+EEEH = V1[daysback]/S1[daysback]/M1[daysback]/F1[daysback]*W1[daysback]*X1[daysback]*Y1[daysback]*1000
+FFFH = Z1[daysback]/R1[daysback]/I1[daysback]/O1[daysback]/W1[daysback]/G1[daysback]*AA1[daysback]*100
+GGGH = 1/T1[daysback]/J1[daysback]/Z1[daysback]/BB1[daysback]/N1[daysback]/Y1[daysback]/B1[daysback]*1000000000000000000
+HHHH = BB1[daysback]/E1[daysback]/L1[daysback]/P1[daysback]/U1[daysback]/X1[daysback]/AA1[daysback]*10
 
-float c1 = ta.correlation(q, p, length) // au
-float c2 = ta.correlation(r, p, length) // ag
-float c3 = ta.correlation(s, p, length) // aj
-float c4 = ta.correlation(u, p, length) // ac
-float c5 = ta.correlation(v, p, length) // an
+// ROC only set up for EUR
+roca1 = ta.roc(AAA, 5)
+roca2 = ta.roc(AAA, 10)
+roca3 = ta.roc(AAA, 15)
+roca4 = ta.roc(AAA, 25)
 
-float d1 = ta.correlation(w, x, length) // gj
-float d2 = ta.correlation(y, x, length) // gc
-float d3 = ta.correlation(aa, x, length) // ga
-float d4 = ta.correlation(bb, x, length) // gn
-float d5 = ta.correlation(dd, x, length) // ge
-
-float g1 = ta.correlation(mm, ll, length) // jg
-float g2 = ta.correlation(nn, ll, length) // jc
-float g3 = ta.correlation(oo, ll, length) // je
-float g4 = ta.correlation(pp, ll, length) // ja
-float g5 = ta.correlation(ss, ll, length) // jn
-
-float h1 = ta.correlation(tt, ss, length) // cg
-float h2 = ta.correlation(uu, ss, length) // ce
-float h3 = ta.correlation(vv, ss, length) // ca
-float h4 = ta.correlation(ww, ss, length) // cn
-float h5 = ta.correlation(xx, ss, length) // cj
-
-
-
-// float d_za = variance(za, i_variance_window)
-
-var T = table.new(position=i_position, columns=9, rows=8, bgcolor=c_bg_title, frame_color=color.gray, frame_width=2, border_color=color.gray, border_width=0)
+var T = table.new(position=i_position, columns=9, rows=10, bgcolor=#3bc92c, frame_color=color.gray, frame_width=2, border_color=color.black, border_width=1)
 f_table_set_titles() =>
     // X
-    table.cell(table_id=T, column=0, row=0, text='', width=0, height=0, text_color=c_text_color, text_size=i_text_size, bgcolor=c_bg_title)
+    table.cell(table_id=T, column=0, row=0, text='', width=0, height=0, text_color=color.black, text_size=i_text_size, bgcolor=#46917a)
     // vertical
-    table.cell(table_id=T, column=0, row=0, text='   ', width=0, height=10, text_color=c_text_color, text_size=i_text_size, bgcolor=c_bg_title)
-    table.cell(table_id=T, column=0, row=1, text='EUR', width=0, height=10, text_color=c_text_color, text_size=i_text_size, bgcolor=c_bg_title)
-    table.cell(table_id=T, column=0, row=2, text='USD', width=0, height=10, text_color=c_text_color, text_size=i_text_size, bgcolor=c_bg_title)
-    table.cell(table_id=T, column=0, row=3, text='AUD', width=0, height=10, text_color=c_text_color, text_size=i_text_size, bgcolor=c_bg_title)
-    table.cell(table_id=T, column=0, row=4, text='GBP', width=0, height=10, text_color=c_text_color, text_size=i_text_size, bgcolor=c_bg_title)
-    table.cell(table_id=T, column=0, row=5, text='JPY', width=0, height=10, text_color=c_text_color, text_size=i_text_size, bgcolor=c_bg_title)
-    table.cell(table_id=T, column=0, row=6, text='CAD', width=0, height=10, text_color=c_text_color, text_size=i_text_size, bgcolor=c_bg_title)
+    table.cell(table_id=T, column=0, row=0, text='   ', width=0, height=6, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
+    table.cell(table_id=T, column=0, row=1, text='EUR', width=0, height=6, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
+    table.cell(table_id=T, column=0, row=2, text='GBP', width=0, height=6, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
+    table.cell(table_id=T, column=0, row=3, text='USD', width=0, height=6, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
+    table.cell(table_id=T, column=0, row=4, text='AUD', width=0, height=6, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
+    table.cell(table_id=T, column=0, row=5, text='NZD', width=0, height=6, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
+    table.cell(table_id=T, column=0, row=6, text='CAD', width=0, height=6, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
+    table.cell(table_id=T, column=0, row=7, text='JPY', width=0, height=6, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
+    table.cell(table_id=T, column=0, row=8, text='CHF', width=0, height=6, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
+    
     // horizontal
-    table.cell(table_id=T, column=0, row=0, text='   ', width=5, height=0, text_color=c_text_color, text_size=i_text_size, bgcolor=c_bg_title)
-    table.cell(table_id=T, column=1, row=0, text='GBP', width=15, height=0, text_color=c_text_color, text_size=i_text_size, bgcolor=c_bg_title)
-    table.cell(table_id=T, column=2, row=0, text='AUD', width=15, height=0, text_color=c_text_color, text_size=i_text_size, bgcolor=c_bg_title)
-    table.cell(table_id=T, column=3, row=0, text='JPY', width=15, height=0, text_color=c_text_color, text_size=i_text_size, bgcolor=c_bg_title)
-    table.cell(table_id=T, column=4, row=0, text='CAD', width=15, height=0, text_color=c_text_color, text_size=i_text_size, bgcolor=c_bg_title)
-    table.cell(table_id=T, column=5, row=0, text='NZD', width=15, height=0, text_color=c_text_color, text_size=i_text_size, bgcolor=c_bg_title)
-    table.cell(table_id=T, column=6, row=0, text='EUR', width=15, height=0, text_color=c_text_color, text_size=i_text_size, bgcolor=c_bg_title)
+    table.cell(table_id=T, column=0, row=0, text='   ', width=5, height=0, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
+    table.cell(table_id=T, column=1, row=0, text='HIGH', width=10, height=0, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
+    table.cell(table_id=T, column=2, row=0, text='CLOSE', width=10, height=0, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
+    table.cell(table_id=T, column=3, row=0, text='LOW', width=10, height=0, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
+    table.cell(table_id=T, column=4, row=0, text='ROC5', width=10, height=0, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
+    table.cell(table_id=T, column=5, row=0, text='ROC10', width=10, height=0, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
+    table.cell(table_id=T, column=6, row=0, text='ROC15', width=10, height=0, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
+    table.cell(table_id=T, column=7, row=0, text='ROC25', width=10, height=0, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
 f_table_set_titles()
 
-f_table_set_row_values(_r, _1, _2, _3, _4, _5, _6) =>
-    table.cell(table_id=T, column=1, row=_r, text=str.tostring(_1, '#.##%') + str.tostring(ta.variance(_1, i_variance_window), ' σ#.##%'), width=0, height=0, text_color=c_text_color, text_size=i_text_size, bgcolor=c_gradient(100 * _1))
-    table.cell(table_id=T, column=2, row=_r, text=str.tostring(_2, '#.##%') + str.tostring(ta.variance(_2, i_variance_window), ' σ#.##%'), width=0, height=0, text_color=c_text_color, text_size=i_text_size, bgcolor=c_gradient(100 * _2))
-    table.cell(table_id=T, column=3, row=_r, text=str.tostring(_3, '#.##%') + str.tostring(ta.variance(_3, i_variance_window), ' σ#.##%'), width=0, height=0, text_color=c_text_color, text_size=i_text_size, bgcolor=c_gradient(100 * _3))
-    table.cell(table_id=T, column=4, row=_r, text=str.tostring(_4, '#.##%') + str.tostring(ta.variance(_4, i_variance_window), ' σ#.##%'), width=0, height=0, text_color=c_text_color, text_size=i_text_size, bgcolor=c_gradient(100 * _4))
-    table.cell(table_id=T, column=5, row=_r, text=str.tostring(_5, '#.##%') + str.tostring(ta.variance(_5, i_variance_window), ' σ#.##%'), width=0, height=0, text_color=c_text_color, text_size=i_text_size, bgcolor=c_gradient(100 * _5))
-    table.cell(table_id=T, column=6, row=_r, text=str.tostring(_6, '#.##%') + str.tostring(ta.variance(_6, i_variance_window), ' σ#.##%'), width=0, height=0, text_color=c_text_color, text_size=i_text_size, bgcolor=c_gradient(100 * _6))
-f_table_set_row_values(1, a1, a2, a3, a4, a5, 0.)
-f_table_set_row_values(2, b1, b2, b3, b4, b6, b5)
-f_table_set_row_values(3, c1, 0., c2, c3, c4, c5)
-f_table_set_row_values(4, 0., d3, d1, d2, d4, d5)
-f_table_set_row_values(5, g1, g4, 0., g2, g5, g3)
-f_table_set_row_values(6, h1, h3, h5, 0., h4, h2)
+f_table_set_row_values(_r, _1, _2, _3, _4, _5, _6, _7, _8) =>
+    table.cell(table_id=T, column=1, row=_r, text=str.tostring(_1, '#.##'), width=0, height=0, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
+    table.cell(table_id=T, column=2, row=_r, text=str.tostring(_2, '#.##'), width=0, height=0, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
+    table.cell(table_id=T, column=3, row=_r, text=str.tostring(_3, '#.##'), width=0, height=0, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
+    table.cell(table_id=T, column=4, row=_r, text=str.tostring(_4, '#.##'), width=0, height=0, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
+    table.cell(table_id=T, column=5, row=_r, text=str.tostring(_5, '#.##'), width=0, height=0, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
+    table.cell(table_id=T, column=6, row=_r, text=str.tostring(_6, '#.##'), width=0, height=0, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
+    table.cell(table_id=T, column=7, row=_r, text=str.tostring(_7, '#.##'), width=0, height=0, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
+    table.cell(table_id=T, column=8, row=_r, text=str.tostring(_8, '#.##'), width=0, height=0, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
+f_table_set_row_values(1, AAAH, AAA, AAAL, roca1, roca2, roca3, roca4, 0.) // eur
+f_table_set_row_values(2, BBBH, BBB, BBBL, 0., 0., 0., 0., 0.)             // gbp
+f_table_set_row_values(3, CCCH, CCC, CCCL, 0., 0., 0., 0., 0.)             // usd
+f_table_set_row_values(4, DDDH, DDD, DDDL, 0., 0., 0., 0., 0.)             // aud
+f_table_set_row_values(5, EEEH, EEE, EEEL, 0., 0., 0., 0., 0.)             // nzd
+f_table_set_row_values(6, FFFH, FFF, FFFL, 0., 0., 0., 0., 0.)             // cad
+f_table_set_row_values(7, GGGH, GGG, GGGL, 0., 0., 0., 0., 0.)             // jpy
+f_table_set_row_values(8, HHHH, HHH, HHHL, 0., 0., 0., 0., 0.)             // chf
 
