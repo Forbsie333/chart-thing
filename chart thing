@@ -75,24 +75,7 @@ FFF = Z2/R2/I2/O2/W2/G2*AA2*100  // cad
 GGG = 1/T2/J2/Z2/BB2/N2/Y2/B2*100000000000000000 // jpy
 HHH = BB2/E2/L2/P2/U2/X2/AA2*10 // chf
 
-AAAL = A3[daysback]*B3[daysback]*C3[daysback]*D3[daysback]*E3[daysback]*F3[daysback]*G3[daysback]*10
-BBBL = H3[daysback]*I3[daysback]/C3[daysback]*J3[daysback]*K3[daysback]*L3[daysback]*M3[daysback]
-CCCL = N3[daysback]*O3[daysback]/A3[daysback]/K3[daysback]*P3[daysback]/Q3[daysback]/V3[daysback]*10
-DDDL = Q3[daysback]/D3[daysback]/H3[daysback]*R3[daysback]*S3[daysback]*T3[daysback]*U3[daysback]*100
-EEEL = V3[daysback]/S3[daysback]/M3[daysback]/F3[daysback]*W3[daysback]*X3[daysback]*Y3[daysback]*1000
-FFFL = Z3[daysback]/R3[daysback]/I3[daysback]/O3[daysback]/W3[daysback]/G3[daysback]*AA3[daysback]*100
-GGGL = 1/T3[daysback]/J3[daysback]/Z3[daysback]/BB3[daysback]/N3[daysback]/Y3[daysback]/B3[daysback]*1000000000000000000
-HHHL = BB3[daysback]/E3[daysback]/L3[daysback]/P3[daysback]/U3[daysback]/X3[daysback]/AA3[daysback]*10
-
-AAAH = A1[daysback]*B1[daysback]*C1[daysback]*D1[daysback]*E1[daysback]*F1[daysback]*G1[daysback]*10
-BBBH = H1[daysback]*I1[daysback]/C1[daysback]*J1[daysback]*K1[daysback]*L1[daysback]*M1[daysback]
-CCCH = N1[daysback]*O1[daysback]/A1[daysback]/K1[daysback]*P1[daysback]/Q1[daysback]/V1[daysback]*10
-DDDH = Q1[daysback]/D1[daysback]/H1[daysback]*R1[daysback]*S1[daysback]*T1[daysback]*U1[daysback]*100
-EEEH = V1[daysback]/S1[daysback]/M1[daysback]/F1[daysback]*W1[daysback]*X1[daysback]*Y1[daysback]*1000
-FFFH = Z1[daysback]/R1[daysback]/I1[daysback]/O1[daysback]/W1[daysback]/G1[daysback]*AA1[daysback]*100
-GGGH = 1/T1[daysback]/J1[daysback]/Z1[daysback]/BB1[daysback]/N1[daysback]/Y1[daysback]/B1[daysback]*1000000000000000000
-HHHH = BB1[daysback]/E1[daysback]/L1[daysback]/P1[daysback]/U1[daysback]/X1[daysback]/AA1[daysback]*10
-
+ 
 // ROC only set up for EUR
 roca1 = ta.roc(AAA, 5)
 roca2 = ta.roc(AAA, 10)
@@ -134,12 +117,12 @@ f_table_set_row_values(_r, _1, _2, _3, _4, _5, _6, _7, _8) =>
     table.cell(table_id=T, column=6, row=_r, text=str.tostring(_6, '#.##'), width=0, height=0, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
     table.cell(table_id=T, column=7, row=_r, text=str.tostring(_7, '#.##'), width=0, height=0, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
     table.cell(table_id=T, column=8, row=_r, text=str.tostring(_8, '#.##'), width=0, height=0, text_color=color.black, text_size=i_text_size, bgcolor=#b6aaa5)
-f_table_set_row_values(1, AAAH, AAA, AAAL, roca1, roca2, roca3, roca4, 0.) // eur
-f_table_set_row_values(2, BBBH, BBB, BBBL, 0., 0., 0., 0., 0.)             // gbp
-f_table_set_row_values(3, CCCH, CCC, CCCL, 0., 0., 0., 0., 0.)             // usd
-f_table_set_row_values(4, DDDH, DDD, DDDL, 0., 0., 0., 0., 0.)             // aud
-f_table_set_row_values(5, EEEH, EEE, EEEL, 0., 0., 0., 0., 0.)             // nzd
-f_table_set_row_values(6, FFFH, FFF, FFFL, 0., 0., 0., 0., 0.)             // cad
-f_table_set_row_values(7, GGGH, GGG, GGGL, 0., 0., 0., 0., 0.)             // jpy
-f_table_set_row_values(8, HHHH, HHH, HHHL, 0., 0., 0., 0., 0.)             // chf
+f_table_set_row_values(1, 0., AAA, 0., roca1, roca2, roca3, roca4, 0.) // eur
+f_table_set_row_values(2, 0., BBB, 0., 0., 0., 0., 0., 0.)             // gbp
+f_table_set_row_values(3, 0., CCC, 0., 0., 0., 0., 0., 0.)             // usd
+f_table_set_row_values(4, 0., DDD, 0., 0., 0., 0., 0., 0.)             // aud
+f_table_set_row_values(5, 0., EEE, 0., 0., 0., 0., 0., 0.)             // nzd
+f_table_set_row_values(6, 0., FFF, 0., 0., 0., 0., 0., 0.)             // cad
+f_table_set_row_values(7, 0., GGG, 0., 0., 0., 0., 0., 0.)             // jpy
+f_table_set_row_values(8, 0., HHH, 0., 0., 0., 0., 0., 0.)             // chf
 
